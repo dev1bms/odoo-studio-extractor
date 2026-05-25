@@ -14,6 +14,47 @@ from typing import Any, Iterable
 from ..client import OdooClient, OdooClientError
 
 
+def safe_fields(
+    client: OdooClient,
+    model_name: str,
+    requested_fields: Iterable[str],
+    warnings: list[str] | None = None,
+) -> list[str]:
+    """Filter requested fields to only those that exist in the model.
+
+    Calls ``fields_get`` on the model and returns the intersection of
+    ``requested_fields`` with the actual fields available. If any requested
+    fields are missing, a warning is appended to ``warnings``.
+
+    Args:
+        client: Authenticated OdooClient instance.
+        model_name: The Odoo model name (e.g., "base.automation").
+        requested_fields: Fields we'd like to read.
+        warnings: Optional list to append warnings to.
+
+    Returns:
+        A list of field names that are safe to use in search_read.
+    """
+    warnings = warnings if warnings is not None else []
+    try:
+        available = client.fields_get(model_name)
+        available_set = set(available.keys())
+        requested_set = set(requested_fields)
+        safe = requested_set & available_set
+        missing = requested_set - available_set
+        if missing:
+            warnings.append(
+                f"{model_name}: skipped unavailable fields: {', '.join(sorted(missing))}"
+            )
+        return sorted(safe)
+    except OdooClientError as exc:
+        warnings.append(
+            f"{model_name}: could not retrieve field metadata: {exc}. "
+            f"Using all requested fields."
+        )
+        return list(requested_fields)
+
+
 SERVER_ACTION_FIELDS: tuple[str, ...] = (
     "id",
     "name",
@@ -77,11 +118,17 @@ def extract_server_actions(
     """Return server actions, optionally filtered by custom model names."""
     warnings = warnings if warnings is not None else []
     domain = _domain_for_models(custom_models)
+    fields = safe_fields(client, "ir.actions.server", SERVER_ACTION_FIELDS, warnings)
+    if not fields:
+        warnings.append(
+            "ir.actions.server: no valid fields available, skipping extraction."
+        )
+        return []
     try:
         return client.search_read(
             "ir.actions.server",
             domain,
-            list(SERVER_ACTION_FIELDS),
+            fields,
             order="model_name asc, name asc",
         )
     except OdooClientError as exc:
@@ -106,11 +153,17 @@ def extract_automations(
         return []
 
     domain = _domain_for_models(custom_models)
+    fields = safe_fields(client, "base.automation", AUTOMATION_FIELDS, warnings)
+    if not fields:
+        warnings.append(
+            "base.automation: no valid fields available, skipping extraction."
+        )
+        return []
     try:
         return client.search_read(
             "base.automation",
             domain,
-            list(AUTOMATION_FIELDS),
+            fields,
             order="model_name asc, name asc",
         )
     except OdooClientError as exc:
@@ -124,11 +177,17 @@ def extract_crons(
 ) -> list[dict[str, Any]]:
     """Return scheduled actions (``ir.cron``) — useful for completeness."""
     warnings = warnings if warnings is not None else []
+    fields = safe_fields(client, "ir.cron", CRON_FIELDS, warnings)
+    if not fields:
+        warnings.append(
+            "ir.cron: no valid fields available, skipping extraction."
+        )
+        return []
     try:
         return client.search_read(
             "ir.cron",
             [],
-            list(CRON_FIELDS),
+            fields,
             order="name asc",
         )
     except OdooClientError as exc:
