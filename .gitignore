@@ -1,0 +1,48 @@
+# --- Secrets / local config ---
+.env
+.env.*
+!.env.example
+
+# --- Generated outputs (project-root only) ---
+/outputs/
+/exports/
+/reports/
+/private/
+
+# --- Data dumps ---
+*.sql
+*.dump
+*.csv
+*.xlsx
+
+# --- AI tooling artifacts (intentionally excluded) ---
+.cursor/
+.continue/
+.aider*
+.claude/
+.codex/
+AGENTS.md
+prompts/
+scratch/
+notes/
+ai-output/
+memory/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

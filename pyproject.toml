@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odoo-studio-extractor"
+version = "0.1.0"
+description = "Read-only CLI tool to extract Odoo Studio customizations into Markdown and JSON reports."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = ["odoo", "studio", "audit", "xmlrpc", "migration", "extractor"]
+authors = [
+    { name = "odoo-studio-extractor contributors" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dotenv = ["python-dotenv>=1.0"]
+dev = [
+    "python-dotenv>=1.0",
+    "pytest>=7.0",
+]
+
+[project.scripts]
+odoo-studio-extractor = "odoo_studio_extractor.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/odoo-studio-extractor"
+Issues = "https://github.com/your-org/odoo-studio-extractor/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"odoo_studio_extractor" = ["py.typed"]
